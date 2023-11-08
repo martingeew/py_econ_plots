@@ -14,7 +14,7 @@ The objective of this script is to clean the dataset of the cpi data, set the in
 # --------------------------------------------------------------
 
 # Loading all the datasets using the provided format
-cpi_data = pd.read_csv('./../data/raw/nz_cpi_group_3.csv', sep=',')
+cpi_data = pd.read_csv('../../data/raw/nz_cpi_subgroup_2.csv', sep=',')
 
 
 # --------------------------------------------------------------
@@ -27,6 +27,7 @@ cpi_data.replace('..', pd.NA, inplace=True)
 # Remove any rows that are entirely NaN, which likely correspond to metadata or contact info
 cpi_data.dropna(how='all', inplace=True)
 
+# Rename index
 cpi_data.rename(columns={'Unnamed: 0': 'Quarter'}, inplace=True)
 
 # Set the 'Quarter' column as the index of your DataFrame for plotting
