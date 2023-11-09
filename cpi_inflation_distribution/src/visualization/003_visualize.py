@@ -21,9 +21,14 @@ GREY91 = "#e8e8e8"
 GREY98 = "#fafafa"
 CHARCOAL = "#333333"
 
+# colorblind_palette = sns.color_palette("colorblind").as_hex()
+BLUE = "#0173b2"
+RED = "#de8f05"
+GREEN = "#029e73"
+
 # Set font family
 font_family = "Consolas"  # techy feel
-plt.rcParams['font.family'] = font_family
+plt.rcParams["font.family"] = font_family
 
 # Set global spine customizations
 plt.rcParams["axes.spines.right"] = False
@@ -32,39 +37,42 @@ plt.rcParams["axes.spines.left"] = False
 plt.rcParams["axes.spines.bottom"] = True
 
 # Set tick color for the x-axis
-plt.rcParams['xtick.color'] = GREY40
-#plt.rcParams['ytick.color'] = GREY40
-plt.rcParams['ytick.left'] = False
+plt.rcParams["xtick.color"] = GREY40
+# plt.rcParams['ytick.color'] = GREY40
+plt.rcParams["ytick.left"] = False
 
 # Choose grid options
-plt.rcParams['axes.grid'] = True
-plt.rcParams['axes.grid.axis'] = 'y'
-plt.rcParams['grid.color'] = GREY91
-plt.rcParams['grid.linewidth'] = 1.0
+plt.rcParams["axes.grid"] = True
+plt.rcParams["axes.grid.axis"] = "y"
+plt.rcParams["grid.color"] = GREY91
+plt.rcParams["grid.linewidth"] = 1.0
 
 # Set global tick label font size
-plt.rcParams['xtick.labelsize'] = 12
-plt.rcParams['ytick.labelsize'] = 12
+plt.rcParams["xtick.labelsize"] = 12
+plt.rcParams["ytick.labelsize"] = 12
 
 # --------------------------------------------------------------
 # Create plot
 # --------------------------------------------------------------
 
+
 def plot_multiple_densities_seaborn(df, index_rows, percentile_range=None):
     """
     Plot density curves of the CPI annual percentage change for specified index rows using seaborn.
     Optionally exclude data points outside the top and bottom percentiles.
-    
+
     Parameters:
     df (pd.DataFrame): The DataFrame containing the CPI data.
     index_rows (list): A list of index labels for the rows for which to plot the density curves.
     percentile_range (float, optional): If provided, exclude data points outside the top and bottom percentiles.
     """
-    
+
     # Set up the matplotlib figure and axes
-    fig, ax = plt.subplots(figsize=(8, 5))
-    
-    for index_row in index_rows:
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    custom_palette = [BLUE, GREEN, RED]
+
+    for index_row, color in zip(index_rows, custom_palette):
         # Select the row for the specified index
         row_data = df.loc[index_row]
 
@@ -72,24 +80,38 @@ def plot_multiple_densities_seaborn(df, index_rows, percentile_range=None):
         if percentile_range is not None:
             lower_percentile = np.percentile(row_data, percentile_range)
             upper_percentile = np.percentile(row_data, 100 - percentile_range)
-            row_data = row_data[(row_data >= lower_percentile) & (row_data <= upper_percentile)]
+            row_data = row_data[
+                (row_data >= lower_percentile) & (row_data <= upper_percentile)
+            ]
 
         # Plot a density curve with seaborn on the specified axes
-        sns.kdeplot(row_data, bw_adjust=0.5, label=index_row, ax=ax,fill=True,alpha=0.1,linewidth=2)
+        sns.kdeplot(
+            row_data,
+            bw_adjust=0.5,
+            label=index_row,
+            ax=ax,
+            fill=True,
+            alpha=0.1,
+            linewidth=2,
+            color=color,
+        )
 
     # Adding a horizontal line at y=0
-    ax.axvline(0, color=GREY40, linestyle='--', alpha=0.75)
+    ax.axvline(0, color=GREY40, linestyle="--", alpha=0.75)
 
     # Adding legend
-    ax.legend(title=None)
+    # ax.legend(title=None)
 
     # Adding labels
-    ax.set_xlabel('Annual Percent Change')
-    ax.set_ylabel('Density')
-    
+    ax.set_xlabel("Annual Percent Change")
+    ax.set_ylabel("Density")
+
     return fig, ax
 
-fig, ax = plot_multiple_densities_seaborn(cpi_data_apc, ['2023Q3', '2022Q3', '2020Q3'], percentile_range=2)
+
+fig, ax = plot_multiple_densities_seaborn(
+    cpi_data_apc, ["2023Q3", "2022Q3", "2020Q3"], percentile_range=2
+)
 
 # --------------------------------------------------------------
 # Plot specific customizations
@@ -111,14 +133,49 @@ new_ticks = np.arange(current_ticks.min(), current_ticks.max() + 0.05, 0.05)
 ax.set_yticks(new_ticks)
 
 # customize legend
-ax.legend(title=None, fontsize='12')
+# ax.legend(title=None, fontsize="12")
+
+# Set x labels size
+ax.set_xlabel("Annual percent change", fontsize=14)
+
+# Add annotation labels
+colors = [BLUE, GREEN, RED]  # List of colors for each curve
+points = [
+    (8, 0.09),
+    (15, 0.018),
+    (-2.5, 0.055),
+]  # List of points to annotate (x, y) on the density curves
+texts = ["2023-Q3", "2022-Q3", "2020-Q3"]  # List of annotation texts
+connectionstyles = [
+    "arc3,rad=-0.3",
+    "arc3,rad=-0.3",
+    "arc3,rad=0.2",
+]  # Different connection styles for each annotation
+
+for point, text, color, conn_style in zip(points, texts, colors, connectionstyles):
+    ax.annotate(
+        text,
+        xy=point,
+        xytext=(point[0] - 0.1, point[1] + 0.05),
+        arrowprops=dict(
+            facecolor=color, # Set the color of the arrowhead (the "face" of the arrow) 
+            shrink=0.01,# Shrink the start and end of the arrow by a small fraction to avoid overlap with the text and point
+            headwidth=8,  # Set the width of the arrowhead
+            width=0.6,  # Set the width of the arrow's body (the line part)
+            connectionstyle=conn_style,
+            alpha=0.5,
+        ),
+        fontsize=12,
+        color=color,
+        ha="center",
+    )
 
 # Add title
 fig.suptitle(
     "Distribution of CPI inflation by year",
-    fontsize=20,
+    fontsize=22,
     x=0.045,
-    y=0.95,
+    y=0.97,
     ha="left",
     color=CHARCOAL,
     weight="bold",
@@ -128,10 +185,10 @@ fig.suptitle(
 ax.set_title(
     "Density curve across CPI level 2 subgroups",
     loc="left",
-    fontsize=14,
+    fontsize=16,
     x=-0.04,
     # y=1.2,
-    pad=25, # padding between the top of the plot and the subheading
+    pad=25,  # padding between the top of the plot and the subheading
     color=CHARCOAL,
 )
 
@@ -142,19 +199,20 @@ ax.annotate(
     xycoords="axes fraction",
     ha="right",
     va="center",
-    fontsize=12,
+    fontsize=11,
     color=CHARCOAL,
 )
 
 ax.annotate(
-    "Source: Google trends",
+    "Source: Statistics NZ",
     xy=(-0.02, -0.25),
     xycoords="axes fraction",
     ha="left",
     va="center",
-    fontsize=12,
+    fontsize=11,
     color=CHARCOAL,
 )
 
 plt.tight_layout()
+# save_plot_as_image(filename="ramen_trend_by_country")  # Save the image into a #folder
 plt.show()
