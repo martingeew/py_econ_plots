@@ -131,14 +131,19 @@ ax.set_xticklabels(x_ticks, weight=500, color=GREY40)
 current_ticks = ax.get_yticks()
 new_ticks = np.arange(current_ticks.min(), current_ticks.max() + 0.05, 0.05)
 ax.set_yticks(new_ticks)
+new_ticks = np.round(new_ticks,2)
+ax.set_yticklabels(new_ticks, weight=500, color=GREY40)
 
 # customize legend
 # ax.legend(title=None, fontsize="12")
 
-# Set x labels size
-ax.set_xlabel("Annual percent change", fontsize=14)
+# Customize x labels
+ax.set_xlabel("Annual percent change", fontsize=14, labelpad=15)
 
-# Add annotation labels
+# Set y labels size and padding
+ax.set_ylabel("Density", fontsize=14, labelpad=15)
+
+# Customize y labels
 colors = [BLUE, GREEN, RED]  # List of colors for each curve
 points = [
     (8, 0.09),
@@ -172,9 +177,9 @@ for point, text, color, conn_style in zip(points, texts, colors, connectionstyle
 
 # Add title
 fig.suptitle(
-    "Distribution of CPI inflation by year",
+    "CPI Inflation Density Distribution in New Zealand",
     fontsize=22,
-    x=0.045,
+    x=0.05,
     y=0.97,
     ha="left",
     color=CHARCOAL,
@@ -183,10 +188,10 @@ fig.suptitle(
 
 # Add subtitle
 ax.set_title(
-    "Density curve across CPI level 2 subgroups",
+    "'Smoothed histogram' of annual inflation across CPI level 2 subgroups",
     loc="left",
     fontsize=16,
-    x=-0.04,
+    x=-0.06,
     # y=1.2,
     pad=25,  # padding between the top of the plot and the subheading
     color=CHARCOAL,
@@ -205,7 +210,7 @@ ax.annotate(
 
 ax.annotate(
     "Source: Statistics NZ",
-    xy=(-0.02, -0.25),
+    xy=(-0.07, -0.25),
     xycoords="axes fraction",
     ha="left",
     va="center",
