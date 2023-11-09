@@ -188,7 +188,7 @@ fig.suptitle(
 
 # Add subtitle
 ax.set_title(
-    "'Smoothed histogram' of annual inflation across CPI level 2 subgroups",
+    "Annual inflation across CPI level 2 subgroups (top/bottom 2 percent removed)",
     loc="left",
     fontsize=16,
     x=-0.06,
