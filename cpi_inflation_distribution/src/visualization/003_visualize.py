@@ -219,5 +219,5 @@ ax.annotate(
 )
 
 plt.tight_layout()
-# save_plot_as_image(filename="ramen_trend_by_country")  # Save the image into a #folder
+save_plot_as_image(filename="cpi_inflation_density_nz")  # Save the image into a folder
 plt.show()
