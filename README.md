@@ -8,4 +8,4 @@ The plot iluustrates how to use annotations and seaborn kde density plots.
 
 Code: `py_econ_plots\cpi_inflation_distribution`
 
-![Final plott](https://github.com/martingeew/py_econ_plots/blob/main/cpi_inflation_distribution/reports/figures/09-11-2023/cpi_inflation_density_nz.png?raw=true)
+![Final plott](https://github.com/martingeew/py_econ_plots/blob/main/cpi_inflation_distribution/reports/figures/29-01-2024/cpi_inflation_density_nz.png?raw=true)

@@ -14,7 +14,7 @@ The objective of this script is to clean the dataset of the cpi data, set the in
 # --------------------------------------------------------------
 
 # Loading all the datasets using the provided format
-cpi_data = pd.read_csv('../../data/raw/nz_cpi_subgroup_2.csv', sep=',')
+cpi_data = pd.read_csv('../../data/raw/nz_cpi_subgroup_2_2023q4.csv', sep=',')
 
 
 # --------------------------------------------------------------
@@ -40,4 +40,4 @@ cpi_data = cpi_data.apply(pd.to_numeric, errors='coerce')
 # Export
 # --------------------------------------------------------------
 
-cpi_data.to_pickle("../../data/interim/nz_cpi_group_3_clean.pkl")
+cpi_data.to_pickle("../../data/interim/nz_cpi_group_3_clean_2023q4.pkl")

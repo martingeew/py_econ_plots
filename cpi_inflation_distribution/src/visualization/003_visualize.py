@@ -4,7 +4,7 @@ import pandas as pd
 import seaborn as sns
 from plot_utils import save_plot_as_image
 
-cpi_data_apc = pd.read_pickle("../../data/processed/nz_cpi_group_3_apc.pkl")
+cpi_data_apc = pd.read_pickle("../../data/processed/nz_cpi_group_3_apc_2023q4.pkl")
 
 # --------------------------------------------------------------
 # Set styling
@@ -110,7 +110,7 @@ def plot_multiple_densities_seaborn(df, index_rows, percentile_range=None):
 
 
 fig, ax = plot_multiple_densities_seaborn(
-    cpi_data_apc, ["2023Q3", "2022Q3", "2020Q3"], percentile_range=2
+    cpi_data_apc, ["2023Q4", "2022Q4", "2020Q4"], percentile_range=2 # Update new data release
 )
 
 # --------------------------------------------------------------
@@ -146,11 +146,11 @@ ax.set_ylabel("Density", fontsize=14, labelpad=15)
 # Customize y labels
 colors = [BLUE, GREEN, RED]  # List of colors for each curve
 points = [
-    (8, 0.09),
-    (15, 0.018),
-    (-2.5, 0.055),
+    (6.25, 0.11), # Update new data release
+    (15, 0.025), # Update new data release
+    (-2.5, 0.0425), # Update new data release
 ]  # List of points to annotate (x, y) on the density curves
-texts = ["2023-Q3", "2022-Q3", "2020-Q3"]  # List of annotation texts
+texts = ["2023-Q4", "2022-Q4", "2020-Q4"]  # List of annotation texts (update new data release)
 connectionstyles = [
     "arc3,rad=-0.3",
     "arc3,rad=-0.3",
