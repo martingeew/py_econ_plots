@@ -17,14 +17,14 @@ index_to_filter = '2023Q4'
 filtered_df = cpi_data_apc.loc[[index_to_filter]]
 transposed_df=filtered_df.T
 transposed_df_sorted=transposed_df.sort_values(by=index_to_filter, ascending=True).round(2)
-print('Top 5 apc:')
+print('Top 3 apc:')
 print(transposed_df_sorted.tail(3))
-print('\nBottom 5 apc:')
+print('\nBottom 3 apc:')
 print(transposed_df_sorted.head(3))
 
 # Display share above 2%
 share_above_2=len(transposed_df_sorted[transposed_df_sorted[index_to_filter]>2])/len(transposed_df_sorted)
-print('\nshare above 2%')
+print('\nshare above 2%:')
 print(share_above_2)
 
 # --------------------------------------------------------------
