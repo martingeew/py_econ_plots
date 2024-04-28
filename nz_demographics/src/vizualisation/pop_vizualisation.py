@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 # Bar plot of boomers across time
 
 # Load the dataset
-df = pd.read_csv("pop_estimate_processed_nz.csv", sep=",")
+df = pd.read_csv("../../data/processed/pop_estimate_processed_nz.csv", sep=",")
 
 # Define the years of interest for plotting
 years = [1996, 2006, 2018, 2023]
@@ -54,7 +54,7 @@ from pywaffle import Waffle
 import pandas as pd
 
 # Load the dataset
-df_waffle = pd.read_csv("pop_estimate_processed_2023.csv", sep=",")
+df_waffle = pd.read_csv("../../data/processed/pop_estimate_processed_2023.csv", sep=",")
 
 # NZ total only
 df_waffle_nz = df_waffle[
@@ -370,7 +370,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 # Load the dataset
-df_heatmap = pd.read_csv("pop_estimate_processed_2023.csv", sep=",")
+df_heatmap = pd.read_csv("../../data/processed/pop_estimate_processed_2023.csv", sep=",")
 
 # Pivot the DataFrame using pivot_table
 df_heatmap_pivot = df_heatmap.pivot_table(
@@ -390,6 +390,7 @@ plt.title("Population Share by Generation and Region")
 plt.xlabel("Generation")
 plt.ylabel("Region")
 plt.show()
+
 
 ###########################################################################
 # Plot a horizontal bar plot of boomer share by TA
