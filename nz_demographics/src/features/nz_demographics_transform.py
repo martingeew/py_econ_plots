@@ -1,6 +1,6 @@
 import pandas as pd
 
-df = pd.read_csv('pop_estimate_interim.csv', sep=',')
+df = pd.read_csv('../../data/interim/pop_estimate_interim.csv', sep=',')
 
 df=df[df['Age']!='Total people, age']
 
@@ -79,16 +79,19 @@ df['Age'] = df['Age'].astype(str)  # Ensure the Age column is of type string
 df = df.sort_values('Age', key=lambda x: x.map(age_to_numeric))
 
 
-# save d for NZ only to csv
+# save df for NZ only to csv
 df_nz=df[
     (df['Region']=='Total, New Zealand')
 ].copy()
-df_nz.to_csv('pop_estimate_processed_nz.csv', index=False) 
+df_nz.to_csv('../../data/processed/pop_estimate_processed_nz.csv', index=False) 
 
 # save df for All regions but 2023 only
 df_2023=df[
     (df['Year']==2023)
 ].copy()
-df_2023.to_csv('pop_estimate_processed_2023.csv', index=False) 
+df_2023.to_csv('../../data/processed/pop_estimate_processed_2023.csv', index=False) 
+
+# save complete data
+df.to_csv('../../data/processed/pop_estimate_processed.csv', index=False) 
 
 
