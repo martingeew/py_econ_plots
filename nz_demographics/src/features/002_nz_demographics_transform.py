@@ -91,17 +91,15 @@ def age_to_numeric(age):
 df["Age"] = df["Age"].astype(str)  # Ensure the Age column is of type string
 df = df.sort_values("Age", key=lambda x: x.map(age_to_numeric))
 
+def capitalize_region_name(name):
+    def capitalize_word(word):
+        # Capitalize hyphenated words properly
+        return '-'.join([w.capitalize() for w in word.split('-')])
+    
+    return ' '.join([capitalize_word(word) if word.lower() != "of" and word.lower() != "the" else word for word in name.split()])
 
-# save df for NZ only to csv
-df_nz = df[(df["Region"] == "Total, New Zealand")].copy()
-df_nz.to_csv("../../data/processed/pop_estimate_processed_nz.csv", index=False)
-
-# save df for All regions but 2023 only
-df_2023 = df[(df["Year"] == 2023)].copy()
-df_2023.to_csv("../../data/processed/pop_estimate_processed_2023.csv", index=False)
-
-# save complete data
-df.to_csv("../../data/processed/pop_estimate_processed.csv", index=False)
+# Transform the 'region' column
+df['Region'] = df['Region'].apply(capitalize_region_name)
 
 
 ###### Data by selected populatino share #######
@@ -161,7 +159,20 @@ comparison_df["Millennial_Boomer_Share"] = (
     comparison_df["Millennial_Share"] + comparison_df["Boomer_Share"]
 )
 
+############## Save data ###############
+
 # save data
 comparison_df.to_csv(
     "../../data/processed/pop_estimate_shares_processed.csv", index=False
 )
+
+# save df for NZ only to csv
+df_nz = df[(df["Region"] == "Total, New Zealand")].copy()
+df_nz.to_csv("../../data/processed/pop_estimate_processed_nz.csv", index=False)
+
+# save df for All regions but 2023 only
+df_2023 = df[(df["Year"] == 2023)].copy()
+df_2023.to_csv("../../data/processed/pop_estimate_processed_2023.csv", index=False)
+
+# save complete data
+df.to_csv("../../data/processed/pop_estimate_processed.csv", index=False)
