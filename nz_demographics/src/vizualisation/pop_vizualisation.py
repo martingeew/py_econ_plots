@@ -86,7 +86,9 @@ correlations = (
 correlations.sort_values(by="Correlation", ascending=False).head(20)
 
 # multiples plot
-comparison_df = pd.read_csv("../../data/processed/pop_estimate_shares_processed.csv", sep=",")
+comparison_df = pd.read_csv(
+    "../../data/processed/pop_estimate_shares_processed.csv", sep=","
+)
 
 comparison_df[
     (comparison_df["Year"] == 2023)
