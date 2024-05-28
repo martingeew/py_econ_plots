@@ -1,5 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 ###########################################################################
 # Bar plot of boomers across time
@@ -43,6 +44,131 @@ for i, year in enumerate(years):
     ax.set_ylabel("Population")
 
 # Show the plot
+plt.tight_layout()
+plt.show()
+
+###########################################################################
+# Small multiple plot of boomers vs millenials across time by region
+df = pd.read_csv("../../data/processed/pop_estimate_processed.csv", sep=",")
+
+
+# Filter the DataFrame for Boomers and Millennials
+filtered_df = df[df["Generation"].isin(["Baby Boomer", "Millennial"])]
+
+# Pivot the DataFrame to compare Population for Boomers and Millennials
+comparison_df = filtered_df.pivot_table(
+    index=["Region", "Year"], columns="Generation", values="Population", aggfunc="sum"
+).reset_index()
+
+# Rename columns for clarity
+comparison_df.columns.name = None
+comparison_df.rename(
+    columns={"Baby Boomer": "Boomer_Population", "Millennial": "Millennial_Population"},
+    inplace=True,
+)
+
+
+# Calculate the correlation over the years for each region
+def calculate_correlation(group):
+    if len(group["Boomer_Population"]) > 1 and len(group["Millennial_Population"]) > 1:
+        return group["Boomer_Population"].corr(group["Millennial_Population"])
+    else:
+        return None
+
+
+# Apply the correlation calculation for each region
+correlations = (
+    comparison_df.groupby("Region")
+    .apply(lambda group: calculate_correlation(group))
+    .reset_index(name="Correlation")
+)
+
+correlations.sort_values(by="Correlation", ascending=False).head(20)
+
+# multiples plot
+comparison_df = pd.read_csv("../../data/processed/pop_estimate_shares_processed.csv", sep=",")
+
+comparison_df[
+    (comparison_df["Year"] == 2023)
+    & (comparison_df["Boomer_Share"] > 0.19)
+    & (comparison_df["Millennial_Share"] > 0.19)
+    & (comparison_df["Region"] != "Area outside territorial authority")
+    & (comparison_df["Region"] != "Chatham Islands territory")
+]["Region"].unique()
+
+comparison_df[
+    (comparison_df["Year"] == 2023)
+    & (comparison_df["Millennial_Boomer_Share"] > 0.43)
+    & (comparison_df["Region"] != "Area outside territorial authority")
+    & (comparison_df["Region"] != "Chatham Islands territory")
+]["Region"].unique()
+
+# Specify the list of 16 regions
+regions = [
+    "Ashburton district",
+    "Central Otago district",
+    "Devonport-Takapuna local board area",
+    "Hastings district",
+    "Hibiscus and Bays local board area",
+    "Invercargill city",
+    "Mackenzie district",
+    "Nelson city",
+    "New Plymouth district",
+    "Orakei local board area",
+    "Otorohanga district",
+    "Rodney local board area",
+    "South Taranaki district",
+    "Southland district",
+    "Tauranga city",
+    "Waiheke local board area",
+]
+
+# boomer + millenials are greater than 43%
+regions = [
+    "Aotea/Great Barrier local board area",
+    "Buller district",
+    "Central Otago district",
+    "Hauraki district",
+    "Hurunui district",
+    "Kaikoura district",
+    "Kaipara district",
+    "Mackenzie district",
+    "Marlborough district",
+    "Queenstown-Lakes district",
+    "South Wairarapa district",
+    "Thames-Coromandel district",
+    "Waiheke local board area",
+    "Waimate district",
+    "Waitaki district",
+    "Waitemata local board area",
+]
+
+# Filter the DataFrame for the specified regions
+filtered_comparison_df = comparison_df[comparison_df["Region"].isin(regions)]
+
+# Create the small multiples plot
+# Could show the other generations in grey in background (Gen X and Gen Z)
+fig, axes = plt.subplots(4, 4, figsize=(20, 15), sharex=True, sharey=True)
+axes = axes.flatten()
+
+for i, region in enumerate(regions):
+    ax = axes[i]
+    region_data = filtered_comparison_df[filtered_comparison_df["Region"] == region]
+    sns.lineplot(
+        x="Year", y="Boomer_Share", data=region_data, ax=ax, label="Boomer Share"
+    )
+    sns.lineplot(
+        x="Year",
+        y="Millennial_Share",
+        data=region_data,
+        ax=ax,
+        label="Millennial Share",
+    )
+    ax.set_title(region)
+    ax.set_xlabel("")
+    ax.set_ylabel("Population Share")
+
+# Adjust the layout and display the plot
 plt.tight_layout()
 plt.show()
 
@@ -310,9 +436,9 @@ BLUE = "#0173b2"
 RED = "#de8f05"
 GREEN = "#029e73"
 YELLOW = "#ece133"
-PINK='#cc78bc'
+PINK = "#cc78bc"
 colors = [BLUE, RED, GREEN, YELLOW, PINK]
-#colors=['#4a7493', '#b6a57a', '#5a7d6d', '#a3735a', '#b3b179']
+# colors=['#4a7493', '#b6a57a', '#5a7d6d', '#a3735a', '#b3b179']
 
 # Init the whole figure and axes
 fig, axs = plt.subplots(
@@ -336,15 +462,15 @@ for i, ax in enumerate(axs):
         title={"label": col_name, "loc": "left"},
         colors=colors,
         vertical=True,
-        #icons='person',
-        #font_size=0.01,  # size of each point
-        #icon_legend=True,
+        # icons='person',
+        # font_size=0.01,  # size of each point
+        # icon_legend=True,
         legend={"loc": "upper left", "bbox_to_anchor": (1, 1)},
     )
 
 # Add a title
 fig.suptitle(
-    "Population Demographics by Region", fontsize=14, fontweight="bold",ha='right'
+    "Population Demographics by Region", fontsize=14, fontweight="bold", ha="right"
 )
 
 
@@ -370,7 +496,9 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 # Load the dataset
-df_heatmap = pd.read_csv("../../data/processed/pop_estimate_processed_2023.csv", sep=",")
+df_heatmap = pd.read_csv(
+    "../../data/processed/pop_estimate_processed_2023.csv", sep=","
+)
 
 # Pivot the DataFrame using pivot_table
 df_heatmap_pivot = df_heatmap.pivot_table(
