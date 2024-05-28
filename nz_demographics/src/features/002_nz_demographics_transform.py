@@ -139,6 +139,7 @@ comparison_df.rename(
 comparison_df["Boomer_Share"] = (
     comparison_df["Boomer_Population"] / comparison_df["Total_Population"]
 )
+
 comparison_df["Millennial_Share"] = (
     comparison_df["Millennial_Population"] / comparison_df["Total_Population"]
 )
@@ -148,6 +149,14 @@ comparison_df["Gen Z_Share"] = (
 comparison_df["Gen X_Share"] = (
     comparison_df["Gen X_Population"] / comparison_df["Total_Population"]
 )
+
+# Fill NaN values with 0 (in case there are regions with none in a specific generation)
+comparison_df["Boomer_Share"].fillna(0, inplace=True)
+comparison_df["Gen Z_Share"].fillna(0, inplace=True)
+comparison_df["Millennial_Share"].fillna(0, inplace=True)
+comparison_df["Gen X_Population"].fillna(0, inplace=True)
+
+
 comparison_df["Millennial_Boomer_Share"] = (
     comparison_df["Millennial_Share"] + comparison_df["Boomer_Share"]
 )
