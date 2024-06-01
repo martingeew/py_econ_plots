@@ -295,8 +295,88 @@ plot_ownership_by_age_and_generation_plotly(
     ]
 )
 
-###### Rent inflation plot ######## 
-# Index to 2013 and use plotly
+############## ############## ############## ############## 
+# Rent inflation plot - monthly index - all locations
+
+# Load the demographic share dataset
+df_rent = pd.read_csv(
+    "../../data/raw/detailed-monthly-march-2024-tla-tenancy.csv", sep=","
+)
+
+
+# Convert the 'Time Frame' column to datetime
+df_rent['Time Frame'] = pd.to_datetime(df_rent['Time Frame'])
+
+# Filter the DataFrame to exclude 'All', remove null location, only include 2013 and onwards
+df_rent = df_rent[
+    (df_rent['Location']!= 'ALL')
+    &(df_rent['Location'].notnull())
+    &(df_rent['Time Frame']>=('2013-01-01'))
+]
+
+# Create df for median rent
+df_median_rent = df_rent[[
+    'Time Frame',
+    'Location',
+    'Median Rent'
+]]
+
+# Index the median rent to January 2013
+def calculate_index(group):
+    base = group.loc[group['Time Frame'] == '2013-01-01', 'Median Rent'].mean()
+    group['Index'] = group['Median Rent'] / base * 100
+    return group
+
+df_median_rent = df_median_rent.groupby('Location').apply(calculate_index)
+
+# Get the top 12 regions with the highest increase in Millennial share
+top_12_regions = [
+    'Waiheke Local Board Area', 'Central Otago District', 'Queenstown-Lakes District', 
+    'Aotea/great Barrier Local Board Area', 'Selwyn District', 'Rodney Local Board Area', 
+    'Waimate District', 'Mackenzie District', 'Western Bay of Plenty District', 
+    'Waimakariri District', 'Waitaki District', 'Kapiti Coast District'
+]
+
+# Plot the data
+fig = go.Figure()
+
+all_regions = df_median_rent['Location'].unique()
+
+# Plot all regions with a lighter color and low alpha
+for region in all_regions:
+    region_data = df_median_rent[df_median_rent['Location'] == region]
+    fig.add_trace(go.Scatter(x=region_data["Time Frame"], y=region_data["Index"], mode='lines', name=region, line=dict(color='grey', width=1), showlegend=False))
+
+# Highlight the top 12 regions
+for region in top_12_regions:
+    region_data = df_median_rent[df_median_rent['Location'] == region]
+    fig.add_trace(go.Scatter(x=region_data["Time Frame"], y=region_data["Index"], mode='lines', name=region, line=dict(width=3), showlegend=True))
+
+# Customize the plot
+fig.update_layout(
+    title='Indexed Median Rent Inflation Since January 2013',
+    template='plotly_dark',
+    xaxis_title='Year',
+    yaxis_title='Indexed Median Rent (Jan 2013 = 100)',
+    plot_bgcolor='#282a36',
+    paper_bgcolor='#282a36',
+    showlegend=True,
+    width=1400,
+    height=800,
+    legend=dict(
+        title="Region",
+        orientation="h",
+        yanchor="bottom",
+        y=-0.3,
+        xanchor="center",
+        x=0.5
+    )
+)
+
+fig.show()
+
+############## ############## ############## ############## 
+# Rent inflation plot - annual index - all locations
 
 # Load the demographic share dataset
 df_rent = pd.read_csv(
@@ -304,66 +384,69 @@ df_rent = pd.read_csv(
 )
 
 # Convert the 'Time Frame' column to datetime
-df_rent["Time Frame"] = pd.to_datetime(df_rent["Time Frame"])
+df_rent['Time Frame'] = pd.to_datetime(df_rent['Time Frame'])
 
-# Calculate the annual percent change of median rent inflation for all regions
-df_rent["Year"] = df_rent["Time Frame"].dt.year
-df_annual_median_rent = (
-    df_rent.groupby(["Location", "Year"])["Median Rent"].mean().reset_index()
-)
+# Filter the DataFrame to exclude 'ALL' and remove null location
+df_rent = df_rent[
+    # (df_rent['Location'] != 'ALL') &
+    (df_rent['Location'].notnull())
+    &(df_rent['Time Frame']>=('2013-01-01'))
+]
 
-# Calculate the annual percent change
-df_annual_median_rent["Pct_Change"] = (
-    df_annual_median_rent.groupby("Location")["Median Rent"].pct_change() * 100
-)
+# Create df for median rent for all regions
+df_rent['Year'] = df_rent['Time Frame'].dt.year
+df_median_rent = df_rent.groupby(['Location', 'Year'])['Median Rent'].mean().reset_index()
 
-# Filter the DataFrame to include data since the year 2000
-df_annual_median_rent = df_annual_median_rent[
-    (df_annual_median_rent["Year"] >= 2000)
-    & (df_annual_median_rent["Location"] != "ALL")
+# Index the median rent to the year 2013
+def calculate_index(group):
+    base = group.loc[group['Year'] == 2013, 'Median Rent'].mean()
+    group['Index'] = group['Median Rent'] / base * 100
+    return group
+
+df_median_rent = df_median_rent.groupby('Location').apply(calculate_index)
+
+# Get the top 12 regions with the highest increase in Millennial share
+top_12_regions = [
+    'Waiheke Local Board Area', 'Central Otago District', 'Queenstown-Lakes District', 
+    'Aotea/great Barrier Local Board Area', 'Selwyn District', 'Rodney Local Board Area', 
+    'Waimate District', 'Mackenzie District', 'Western Bay of Plenty District', 
+    'Waimakariri District', 'Waitaki District', 'Kapiti Coast District','ALL'
 ]
 
 # Plot the data
-fig, ax = plt.subplots(figsize=(14, 8))
-all_regions = df_annual_median_rent["Location"].unique()
+fig = go.Figure()
+
+all_regions = df_median_rent['Location'].unique()
 
 # Plot all regions with a lighter color and low alpha
 for region in all_regions:
-    region_data = df_annual_median_rent[df_annual_median_rent["Location"] == region]
-    sns.lineplot(
-        x="Year", y="Pct_Change", data=region_data, ax=ax, color="grey", alpha=0.1
-    )
+    region_data = df_median_rent[df_median_rent['Location'] == region]
+    fig.add_trace(go.Scatter(x=region_data["Year"], y=region_data["Index"], mode='lines', name=region, line=dict(color='grey', width=1),opacity=0.3, showlegend=False))
 
 # Highlight the top 12 regions
-for region in list_regions_plot:
-    region_data = df_annual_median_rent[df_annual_median_rent["Location"] == region]
-    sns.lineplot(x="Year", y="Pct_Change", data=region_data, ax=ax, label=region)
+for region in top_12_regions:
+    region_data = df_median_rent[df_median_rent['Location'] == region]
+    fig.add_trace(go.Scatter(x=region_data["Year"], y=region_data["Index"], mode='lines', name=region, line=dict(width=3), showlegend=True))
 
 # Customize the plot
-ax.set_title("Annual Percent Change of Median Rent Inflation Since 2000", color="white")
-ax.set_xlabel("Year", color="white")
-ax.set_ylabel("Annual Percent Change (%)", color="white")
-ax.spines["top"].set_visible(False)
-ax.spines["right"].set_visible(False)
-ax.yaxis.grid(True, color="gray", linestyle="--", linewidth=0.5, alpha=0.5)
-ax.xaxis.grid(False)
-# Show only the top 12 regions in the legend
-handles, labels = ax.get_legend_handles_labels()
-highlighted_handles = [
-    handles[i] for i in range(len(handles)) if labels[i] in list_regions_plot
-]
-highlighted_labels = [
-    labels[i] for i in range(len(labels)) if labels[i] in list_regions_plot
-]
-fig.legend(
-    highlighted_handles,
-    highlighted_labels,
-    loc="upper left",
-    bbox_to_anchor=(1, 1),
-    ncol=1,
-    facecolor="#282a36",
+fig.update_layout(
+    title='Indexed Median Rent Inflation Since 2013',
+    template='plotly_dark',
+    xaxis_title='Year',
+    yaxis_title='Indexed Median Rent (2013 = 100)',
+    plot_bgcolor='#282a36',
+    paper_bgcolor='#282a36',
+    showlegend=True,
+    width=1400,
+    height=800,
+    legend=dict(
+        title="Region",
+        orientation="h",
+        yanchor="bottom",
+        y=-0.3,
+        xanchor="center",
+        x=0.5
+    )
 )
-fig.tight_layout(rect=[0, 0, 0.85, 1])
-fig.set_facecolor("#282a36")
 
-plt.show()
+fig.show()
