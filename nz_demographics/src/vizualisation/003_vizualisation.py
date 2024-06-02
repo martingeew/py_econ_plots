@@ -109,7 +109,7 @@ plot_geodataframe_dark(df, filtered_gdf, 2013, "Millennial_Boomer_Share")
 plot_geodataframe_dark(df, filtered_gdf, 2023, "Millennial_Boomer_Share")
 
 
-######## Small multiples plot based on correlation #########
+######## Small multiples plot  #########
 # Millennials and Boomers are increasingly moving to the same cities. Has there been a convergence in recent years?
 # Identify where Millennial and Boomer shares have increase since 2006 - use diff
 
@@ -124,12 +124,15 @@ df_filtered = df[
     )
 ]
 
-# Pivot the DataFrame to have years as columns for Millennial share and Boomer share
+# Pivot the DataFrame to have years as columns for Millennial share, Boomer share, and Total Population
 df_pivot_millennial = df_filtered.pivot(
     index="Region", columns="Year", values="Millennial_Share"
 )
 df_pivot_boomer = df_filtered.pivot(
     index="Region", columns="Year", values="Boomer_Share"
+)
+df_pivot_population = df_filtered.pivot(
+    index="Region", columns="Year", values="Total_Population"
 )
 
 # Rename columns for clarity before merging
@@ -137,23 +140,30 @@ df_pivot_millennial.rename(
     columns={2023: "Millennial_2023", 2013: "Millennial_2013"}, inplace=True
 )
 df_pivot_boomer.rename(columns={2023: "Boomer_2023"}, inplace=True)
+df_pivot_population.rename(columns={2023: "Total_Population_2023"}, inplace=True)
 
 # Calculate the difference in Millennial share between 2013 and 2023
 df_pivot_millennial["Difference"] = (
     df_pivot_millennial["Millennial_2023"] - df_pivot_millennial["Millennial_2013"]
 )
 
-# Merge the Millennial share difference with Boomer share
+# Merge the Millennial share difference with Boomer share and Total Population
 df_combined = df_pivot_millennial.merge(
     df_pivot_boomer[["Boomer_2023"]], left_index=True, right_index=True
 )
+df_combined = df_combined.merge(
+    df_pivot_population[["Total_Population_2023"]], left_index=True, right_index=True
+)
 
-# Filter regions with Boomer share greater than 25% in 2023
-df_filtered_boomer = df_combined[df_combined["Boomer_2023"] > 25]
+
+# Filter regions with Boomer share greater than 25% in 2023 and total population in 2023 is greater than 10k
+df_combined_filtered = df_combined[
+    (df_combined["Boomer_2023"] > 21) & (df_combined["Total_Population_2023"] > 30000)
+]
 
 # Sort the DataFrame by the calculated difference in Millennial share
-df_sorted_filtered_boomer = df_filtered_boomer.sort_values(
-    by="Difference", ascending=False
+df_sorted_filtered_boomer = df_combined_filtered.sort_values(
+    by=["Difference"], ascending=False
 )
 
 # Display the top regions with the highest increase in Millennial share
@@ -162,7 +172,6 @@ top_regions_filtered_boomer = df_sorted_filtered_boomer.head(12)
 list_regions_plot = list(
     df_sorted_filtered_boomer.head(12).reset_index()["Region"].unique()
 )
-
 
 # Filter the DataFrame for the specified regions
 multiples_df = df[df["Region"].isin(list_regions_plot)]
@@ -295,7 +304,7 @@ plot_ownership_by_age_and_generation_plotly(
     ]
 )
 
-############## ############## ############## ############## 
+############## ############## ############## ##############
 # Rent inflation plot - monthly index - all locations
 
 # Load the demographic share dataset
@@ -305,61 +314,85 @@ df_rent = pd.read_csv(
 
 
 # Convert the 'Time Frame' column to datetime
-df_rent['Time Frame'] = pd.to_datetime(df_rent['Time Frame'])
+df_rent["Time Frame"] = pd.to_datetime(df_rent["Time Frame"])
 
 # Filter the DataFrame to exclude 'All', remove null location, only include 2013 and onwards
 df_rent = df_rent[
-    (df_rent['Location']!= 'ALL')
-    &(df_rent['Location'].notnull())
-    &(df_rent['Time Frame']>=('2013-01-01'))
+    (df_rent["Location"] != "ALL")
+    & (df_rent["Location"].notnull())
+    & (df_rent["Time Frame"] >= ("2013-01-01"))
 ]
 
 # Create df for median rent
-df_median_rent = df_rent[[
-    'Time Frame',
-    'Location',
-    'Median Rent'
-]]
+df_median_rent = df_rent[["Time Frame", "Location", "Median Rent"]]
+
 
 # Index the median rent to January 2013
 def calculate_index(group):
-    base = group.loc[group['Time Frame'] == '2013-01-01', 'Median Rent'].mean()
-    group['Index'] = group['Median Rent'] / base * 100
+    base = group.loc[group["Time Frame"] == "2013-01-01", "Median Rent"].mean()
+    group["Index"] = group["Median Rent"] / base * 100
     return group
 
-df_median_rent = df_median_rent.groupby('Location').apply(calculate_index)
+
+df_median_rent = df_median_rent.groupby("Location").apply(calculate_index)
 
 # Get the top 12 regions with the highest increase in Millennial share
 top_12_regions = [
-    'Waiheke Local Board Area', 'Central Otago District', 'Queenstown-Lakes District', 
-    'Aotea/great Barrier Local Board Area', 'Selwyn District', 'Rodney Local Board Area', 
-    'Waimate District', 'Mackenzie District', 'Western Bay of Plenty District', 
-    'Waimakariri District', 'Waitaki District', 'Kapiti Coast District'
+    "Waiheke Local Board Area",
+    "Central Otago District",
+    "Queenstown-Lakes District",
+    "Aotea/great Barrier Local Board Area",
+    "Selwyn District",
+    "Rodney Local Board Area",
+    "Waimate District",
+    "Mackenzie District",
+    "Western Bay of Plenty District",
+    "Waimakariri District",
+    "Waitaki District",
+    "Kapiti Coast District",
 ]
 
 # Plot the data
 fig = go.Figure()
 
-all_regions = df_median_rent['Location'].unique()
+all_regions = df_median_rent["Location"].unique()
 
 # Plot all regions with a lighter color and low alpha
 for region in all_regions:
-    region_data = df_median_rent[df_median_rent['Location'] == region]
-    fig.add_trace(go.Scatter(x=region_data["Time Frame"], y=region_data["Index"], mode='lines', name=region, line=dict(color='grey', width=1), showlegend=False))
+    region_data = df_median_rent[df_median_rent["Location"] == region]
+    fig.add_trace(
+        go.Scatter(
+            x=region_data["Time Frame"],
+            y=region_data["Index"],
+            mode="lines",
+            name=region,
+            line=dict(color="grey", width=1),
+            showlegend=False,
+        )
+    )
 
 # Highlight the top 12 regions
 for region in top_12_regions:
-    region_data = df_median_rent[df_median_rent['Location'] == region]
-    fig.add_trace(go.Scatter(x=region_data["Time Frame"], y=region_data["Index"], mode='lines', name=region, line=dict(width=3), showlegend=True))
+    region_data = df_median_rent[df_median_rent["Location"] == region]
+    fig.add_trace(
+        go.Scatter(
+            x=region_data["Time Frame"],
+            y=region_data["Index"],
+            mode="lines",
+            name=region,
+            line=dict(width=3),
+            showlegend=True,
+        )
+    )
 
 # Customize the plot
 fig.update_layout(
-    title='Indexed Median Rent Inflation Since January 2013',
-    template='plotly_dark',
-    xaxis_title='Year',
-    yaxis_title='Indexed Median Rent (Jan 2013 = 100)',
-    plot_bgcolor='#282a36',
-    paper_bgcolor='#282a36',
+    title="Indexed Median Rent Inflation Since January 2013",
+    template="plotly_dark",
+    xaxis_title="Year",
+    yaxis_title="Indexed Median Rent (Jan 2013 = 100)",
+    plot_bgcolor="#282a36",
+    paper_bgcolor="#282a36",
     showlegend=True,
     width=1400,
     height=800,
@@ -369,13 +402,13 @@ fig.update_layout(
         yanchor="bottom",
         y=-0.3,
         xanchor="center",
-        x=0.5
-    )
+        x=0.5,
+    ),
 )
 
 fig.show()
 
-############## ############## ############## ############## 
+############## ############## ############## ##############
 # Rent inflation plot - annual index - all locations
 
 # Load the demographic share dataset
@@ -384,58 +417,101 @@ df_rent = pd.read_csv(
 )
 
 # Convert the 'Time Frame' column to datetime
-df_rent['Time Frame'] = pd.to_datetime(df_rent['Time Frame'])
+df_rent["Time Frame"] = pd.to_datetime(df_rent["Time Frame"])
 
 # Filter the DataFrame to exclude 'ALL' and remove null location
 df_rent = df_rent[
     # (df_rent['Location'] != 'ALL') &
-    (df_rent['Location'].notnull())
-    &(df_rent['Time Frame']>=('2013-01-01'))
+    (df_rent["Location"].notnull())
+    & (df_rent["Time Frame"] >= ("2013-01-01"))
 ]
 
 # Create df for median rent for all regions
-df_rent['Year'] = df_rent['Time Frame'].dt.year
-df_median_rent = df_rent.groupby(['Location', 'Year'])['Median Rent'].mean().reset_index()
+df_rent["Year"] = df_rent["Time Frame"].dt.year
+df_median_rent = (
+    df_rent.groupby(["Location", "Year"])["Median Rent"].mean().reset_index()
+)
+
 
 # Index the median rent to the year 2013
 def calculate_index(group):
-    base = group.loc[group['Year'] == 2013, 'Median Rent'].mean()
-    group['Index'] = group['Median Rent'] / base * 100
+    base = group.loc[group["Year"] == 2013, "Median Rent"].mean()
+    group["Index"] = group["Median Rent"] / base * 100
     return group
 
-df_median_rent = df_median_rent.groupby('Location').apply(calculate_index)
 
-# Get the top 12 regions with the highest increase in Millennial share
+df_median_rent = df_median_rent.groupby("Location").apply(calculate_index)
+
+""" # Get the top 12 regions with the highest increase in Millennial share
 top_12_regions = [
     'Waiheke Local Board Area', 'Central Otago District', 'Queenstown-Lakes District', 
     'Aotea/great Barrier Local Board Area', 'Selwyn District', 'Rodney Local Board Area', 
     'Waimate District', 'Mackenzie District', 'Western Bay of Plenty District', 
     'Waimakariri District', 'Waitaki District', 'Kapiti Coast District','ALL'
-]
+] """
+
+""" top_12_regions = list(
+    df_filtered[df_filtered['Year']==2023].sort_values(by='Boomer_Share', ascending=False).head(12).reset_index()["Region"].unique()
+)+['ALL'] """
+
+""" top_12_regions = list(
+    df_filtered[df_filtered['Year']==2023].sort_values(by='Millennial_Share', ascending=False).head(20)["Region"].unique()
+)+['ALL'] 
+
+ """
+
+""" # Regions with highest change in millenial share
+top_12_regions = list(
+    df_pivot_millennial.sort_values(by='Difference', ascending=False).head(20).reset_index()["Region"].unique()
+)+['ALL']  """
+
+# Regions with highest change in millenial share and boomer share high
+top_12_regions = list(
+    df_sorted_filtered_boomer.head(19).reset_index()["Region"].unique()
+) + ["ALL"]
 
 # Plot the data
 fig = go.Figure()
 
-all_regions = df_median_rent['Location'].unique()
+all_regions = df_median_rent["Location"].unique()
 
 # Plot all regions with a lighter color and low alpha
 for region in all_regions:
-    region_data = df_median_rent[df_median_rent['Location'] == region]
-    fig.add_trace(go.Scatter(x=region_data["Year"], y=region_data["Index"], mode='lines', name=region, line=dict(color='grey', width=1),opacity=0.3, showlegend=False))
+    region_data = df_median_rent[df_median_rent["Location"] == region]
+    fig.add_trace(
+        go.Scatter(
+            x=region_data["Year"],
+            y=region_data["Index"],
+            mode="lines",
+            name=region,
+            line=dict(color="grey", width=1),
+            opacity=0.3,
+            showlegend=False,
+        )
+    )
 
 # Highlight the top 12 regions
 for region in top_12_regions:
-    region_data = df_median_rent[df_median_rent['Location'] == region]
-    fig.add_trace(go.Scatter(x=region_data["Year"], y=region_data["Index"], mode='lines', name=region, line=dict(width=3), showlegend=True))
+    region_data = df_median_rent[df_median_rent["Location"] == region]
+    fig.add_trace(
+        go.Scatter(
+            x=region_data["Year"],
+            y=region_data["Index"],
+            mode="lines",
+            name=region,
+            line=dict(width=3),
+            showlegend=True,
+        )
+    )
 
 # Customize the plot
 fig.update_layout(
-    title='Indexed Median Rent Inflation Since 2013',
-    template='plotly_dark',
-    xaxis_title='Year',
-    yaxis_title='Indexed Median Rent (2013 = 100)',
-    plot_bgcolor='#282a36',
-    paper_bgcolor='#282a36',
+    title="Indexed Median Rent Inflation Since 2013",
+    template="plotly_dark",
+    xaxis_title="Year",
+    yaxis_title="Indexed Median Rent (2013 = 100)",
+    plot_bgcolor="#282a36",
+    paper_bgcolor="#282a36",
     showlegend=True,
     width=1400,
     height=800,
@@ -445,8 +521,8 @@ fig.update_layout(
         yanchor="bottom",
         y=-0.3,
         xanchor="center",
-        x=0.5
-    )
+        x=0.5,
+    ),
 )
 
 fig.show()
