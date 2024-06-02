@@ -528,48 +528,6 @@ fig.update_layout(
 fig.show()
 
 ############ Plot of population overtime ##############
-# Load the dataset
-df = pd.read_csv("../../data/processed/pop_estimate_processed_nz.csv", sep=",")
-
-# Define the years of interest for plotting
-years = [1996, 2006, 2018, 2023]
-
-# Set up the figure for plotting 4 bar plots in a 2x2 grid
-fig, axes = plt.subplots(
-    nrows=2, ncols=2, figsize=(14, 10), sharey=True
-)  # sharey to have uniform scale on y-axis
-
-for i, year in enumerate(years):
-    # Select subplot
-    ax = axes[i // 2, i % 2]
-
-    # Filter data for the specific year
-    year_data = df[df["Year"] == year]
-
-    # Determine bar colors based on '65 and over' condition
-    colors = [
-        "orange" if over_65 else "skyblue" for over_65 in year_data["65 and over"]
-    ]
-
-    # Determine hatch patterns based on 'Generation' being 'Baby Boomer'
-    hatches = ["//" if gen == "Baby Boomer" else "" for gen in year_data["Generation"]]
-
-    # Create each bar individually to apply hatches
-    bars = ax.bar(year_data["Age"], year_data["Population"], color=colors)
-
-    # Apply hatches to each bar
-    for bar, hatch in zip(bars, hatches):
-        bar.set_hatch(hatch)
-
-    # Set titles and labels
-    ax.set_title(f"Population by Age in {year}")
-    ax.set_xlabel("Age")
-    ax.set_ylabel("Population")
-
-# Show the plot
-plt.tight_layout()
-plt.show()
-
 
 # Load the dataset
 df = pd.read_csv("../../data/processed/pop_estimate_processed_nz.csv", sep=",")
