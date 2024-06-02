@@ -526,3 +526,104 @@ fig.update_layout(
 )
 
 fig.show()
+
+############ Plot of population overtime ##############
+# Load the dataset
+df = pd.read_csv("../../data/processed/pop_estimate_processed_nz.csv", sep=",")
+
+# Define the years of interest for plotting
+years = [1996, 2006, 2018, 2023]
+
+# Set up the figure for plotting 4 bar plots in a 2x2 grid
+fig, axes = plt.subplots(
+    nrows=2, ncols=2, figsize=(14, 10), sharey=True
+)  # sharey to have uniform scale on y-axis
+
+for i, year in enumerate(years):
+    # Select subplot
+    ax = axes[i // 2, i % 2]
+
+    # Filter data for the specific year
+    year_data = df[df["Year"] == year]
+
+    # Determine bar colors based on '65 and over' condition
+    colors = [
+        "orange" if over_65 else "skyblue" for over_65 in year_data["65 and over"]
+    ]
+
+    # Determine hatch patterns based on 'Generation' being 'Baby Boomer'
+    hatches = ["//" if gen == "Baby Boomer" else "" for gen in year_data["Generation"]]
+
+    # Create each bar individually to apply hatches
+    bars = ax.bar(year_data["Age"], year_data["Population"], color=colors)
+
+    # Apply hatches to each bar
+    for bar, hatch in zip(bars, hatches):
+        bar.set_hatch(hatch)
+
+    # Set titles and labels
+    ax.set_title(f"Population by Age in {year}")
+    ax.set_xlabel("Age")
+    ax.set_ylabel("Population")
+
+# Show the plot
+plt.tight_layout()
+plt.show()
+
+
+# Load the dataset
+df = pd.read_csv("../../data/processed/pop_estimate_processed_nz.csv", sep=",")
+
+# Define the years of interest for plotting (excluding 2018)
+years = [1996, 2006, 2023]
+
+# Create a subplot figure with 3 rows and 1 column
+fig = make_subplots(
+    rows=3, cols=1, shared_yaxes=True,
+    subplot_titles=[f"{year}" for year in years]
+)
+
+row_col_pairs = [(1, 1), (2, 1), (3, 1)]
+
+for (row, col), year in zip(row_col_pairs, years):
+    # Filter data for the specific year
+    year_data = df[df["Year"] == year]
+
+    # Determine bar colors based on 'Generation'
+    colors = ["orange" if gen == "Baby Boomer" else "skyblue" for gen in year_data["Generation"]]
+
+    # Create bar traces for each age group
+    fig.add_trace(
+        go.Bar(
+            x=year_data["Age"], y=year_data["Population"], marker_color=colors, showlegend=False
+        ),
+        row=row, col=col
+    )
+
+# Find the position of one of the 'Baby Boomer' bars for annotation
+bb_data = df[(df["Year"] == 2023) & (df["Generation"] == "Baby Boomer")]
+bb_x = bb_data["Age"].values[0]
+bb_y = bb_data["Population"].values[0]
+
+# Add annotation pointing to the 'Baby Boomer' bar
+fig.add_annotation(
+    x=bb_x, y=bb_y +10000,  # Adjust the y-coordinate to move the annotation down
+    xref="x3", yref="y3",
+    text="Baby Boomers", showarrow=False,
+    font=dict(color="orange", size=16)  # Increase the font size
+)
+
+# Update layout for dark mode
+fig.update_layout(
+    template='plotly_dark',
+    width=700, height=1200,
+    title_text="Population by Age over the Years",
+    plot_bgcolor='#282a36',
+    paper_bgcolor='#282a36'
+)
+
+# Update axis labels
+fig.update_xaxes(title_text="")
+fig.update_yaxes(title_text="", showticklabels=True)
+
+fig.show()
