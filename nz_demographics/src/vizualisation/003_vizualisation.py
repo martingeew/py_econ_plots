@@ -579,5 +579,6 @@ fig.update_layout(
 # Update axis labels
 fig.update_xaxes(title_text="")
 fig.update_yaxes(title_text="", showticklabels=True)
+fig.update_yaxes(title_text="", range=[0, 400000])
 
 fig.show()
