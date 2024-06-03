@@ -558,15 +558,11 @@ for (row, col), year in zip(row_col_pairs, years):
         row=row, col=col
     )
 
-# Find the position of one of the 'Baby Boomer' bars for annotation
-bb_data = df[(df["Year"] == 2023) & (df["Generation"] == "Baby Boomer")]
-bb_x = bb_data["Age"].values[0]
-bb_y = bb_data["Population"].values[0]
 
 # Add annotation pointing to the 'Baby Boomer' bar
 fig.add_annotation(
-    x=bb_x, y=bb_y +10000,  # Adjust the y-coordinate to move the annotation down
-    xref="x3", yref="y3",
+    x='60-64 Years', y=250000,  # Adjust the y-coordinate to move the annotation down
+    xref="x1", yref="y1",
     text="Baby Boomers", showarrow=False,
     font=dict(color="orange", size=16)  # Increase the font size
 )
