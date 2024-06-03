@@ -670,6 +670,19 @@ fig.show()
 # Load the dataset
 df = pd.read_csv("../../data/processed/pop_estimate_processed_nz.csv", sep=",")
 
+
+# Define a function to relabel the age values
+def relabel_age(age):
+    if age == "90 Years and over":
+        return "90+"
+    else:
+        return age.replace(" Years", "")
+
+
+# Apply the function to the 'Age' column
+df["Age"] = df["Age"].apply(relabel_age)
+
+
 # Define the years of interest for plotting (excluding 2018)
 years = [1996, 2006, 2023]
 
@@ -702,16 +715,17 @@ for (row, col), year in zip(row_col_pairs, years):
         col=col,
     )
 
-
 # Add annotation pointing to the 'Baby Boomer' bar
 fig.add_annotation(
     x="60-64 Years",
-    y=250000,  # Adjust the y-coordinate to move the annotation down
+    y=315000,  # Adjust the y-coordinate to move the annotation down
     xref="x1",
     yref="y1",
     text="Baby Boomers",
     showarrow=False,
-    font=dict(color="orange", size=16),  # Increase the font size
+    font=dict(
+        color="orange", size=16, family="Consolas"
+    ),  # Increase the font size and set font family
 )
 
 # Update layout for dark mode
@@ -719,14 +733,26 @@ fig.update_layout(
     template="plotly_dark",
     width=700,
     height=1200,
-    title_text="Population by Age over the Years",
+    title_text="Population Distribution by Age Group",
     plot_bgcolor="#282a36",
     paper_bgcolor="#282a36",
+    font=dict(size=14, family="Consolas"),  # Set the font family for the entire plot
 )
 
 # Update axis labels
-fig.update_xaxes(title_text="")
-fig.update_yaxes(title_text="", showticklabels=True)
+fig.update_xaxes(title_text="", tickfont=dict(family="Consolas"))
+fig.update_yaxes(title_text="", showticklabels=True, tickfont=dict(family="Consolas"))
 fig.update_yaxes(title_text="", range=[0, 400000])
+
+# Add footer annotation
+fig.add_annotation(
+    text="Source: Statistics NZ",
+    xref="paper",
+    yref="paper",
+    x=1.1,
+    y=-0.075,
+    showarrow=False,
+    font=dict(size=12, color="white", family="Consolas"),
+)
 
 fig.show()
