@@ -269,40 +269,178 @@ df_ownership = pd.read_csv("../../data/raw/home_ownership_generation.csv", sep="
 
 # Function to plot home ownership rates by age and generation using Plotly
 def plot_ownership_by_age_and_generation_plotly(df):
+    # Define the custom color palette
+    colors = {
+        "Gen X": "#636EFA",  # blue
+        "Baby Boomer": "#B6E880",  # light green
+        "Gen Z": "#FFA15A",  # orange
+        "Millennial": "#EF553B",  # red
+        "Silent": "#FF97FF",  # pink
+    }
+
+    # Create the plot
     fig = px.line(
         df,
         x="Age group",
         y="Home Ownership Rate",
         color="Generation",
-        title="Home Ownership Rate by Age and Generation",
+        title="Home Ownership Rate (mean)",
         labels={
             "Age group": "Age Group",
             "Home Ownership Rate": "Home Ownership Rate (%)",
         },
         line_shape="linear",
+        color_discrete_map=colors,  # Apply the custom color palette
     )
 
     fig.update_layout(
         xaxis_title="Age Group",
         yaxis_title="",
-        legend_title_text="Generation",
+        legend_title_text="",
         template="plotly_dark",
         xaxis=dict(tickangle=45),
         plot_bgcolor="#282a36",
         paper_bgcolor="#282a36",
+        font=dict(size=14, family="Consolas"),  # Set the font to Consolas
+        title_font=dict(size=18, family="Consolas"),
+    )
+
+    fig.update_yaxes(title_text="", range=[40, 90])
+
+    # Add footer annotation
+    fig.add_annotation(
+        text="Source: Statistics NZ",
+        xref="paper",
+        yref="paper",
+        x=1.4,
+        y=-0.3,
+        showarrow=False,
+        font=dict(size=12, color="white", family="Consolas"),
     )
 
     fig.show()
 
 
 # Plot the data using Plotly
-plot_ownership_by_age_and_generation_plotly(
+
+df_ownership_grouped = (
     df_ownership[
         (df_ownership["Generation"] != "Other")
         & (df_ownership["Generation"] != "Total")
         & (~df_ownership["Age group"].isin(["0-4", "5-9", "10-14"]))
     ]
+    .groupby(["Age group", "Generation"])["Home Ownership Rate"]
+    .mean()
+    .reset_index()
 )
+
+plot_ownership_by_age_and_generation_plotly(df_ownership_grouped)
+
+# Filter the data for the age ranges 25 to 74
+age_ranges = [
+    "25-29",
+    "30-34",
+    "35-39",
+    "40-44",
+    "45-49",
+    "50-54",
+    "55-59",
+    "60-64",
+    "65-69",
+    "70-74",
+]
+df_filtered = df_ownership[df_ownership["Age group"].isin(age_ranges)]
+
+
+# Define a function to map age ranges to the new intervals
+def map_age(age):
+    if age in ["25-29", "30-34"]:
+        return "25-34"
+    elif age in ["35-39", "40-44"]:
+        return "35-44"
+    elif age in ["45-49", "50-54"]:
+        return "45-54"
+    elif age in ["55-59", "60-64"]:
+        return "55-64"
+    elif age in ["65-69", "70-74"]:
+        return "65-74"
+    else:
+        return None
+
+
+# Apply the function to create a new age column
+df_filtered["Age_Group"] = df_filtered["Age group"].apply(map_age)
+
+# Group the data by the new age column and calculate the mean Home Ownership Rate for each group
+df_grouped = (
+    df_filtered.groupby(["Year", "Age_Group"])["Home Ownership Rate"]
+    .mean()
+    .reset_index()
+)
+
+# Create a line plot using Plotly
+fig = go.Figure()
+
+# Define colors for each age group
+colors = {
+    "25-34": "#636EFA",  #  blue
+    "35-44": "#B6E880",  # light green
+    "45-54": "#FFA15A",  # orange
+    "55-64": "#EF553B",  # red
+    "65-74": "#FF97FF",  # pink
+}
+
+# Add traces for each age group
+for age_group in df_grouped["Age_Group"].unique():
+    age_group_data = df_grouped[df_grouped["Age_Group"] == age_group]
+    fig.add_trace(
+        go.Scatter(
+            x=age_group_data["Year"],
+            y=age_group_data["Home Ownership Rate"],
+            mode="lines+markers",
+            name=age_group,
+            line=dict(color=colors[age_group]),
+            showlegend=False,
+        )
+    )
+    # Add annotation for the last data point of each age group
+    fig.add_annotation(
+        x=age_group_data["Year"].values[-1] + 1,
+        y=age_group_data["Home Ownership Rate"].values[-1],
+        text=age_group,
+        font=dict(color=colors[age_group], family="Consolas"),
+        showarrow=False,
+        xanchor="left",
+        yanchor="middle",
+    )
+
+# Update layout for dark mode
+fig.update_layout(
+    title="Home Ownership Rate (mean) by Age Group",
+    template="plotly_dark",
+    plot_bgcolor="#282a36",
+    paper_bgcolor="#282a36",
+    title_font=dict(size=18, family="Consolas"),
+    xaxis_title="Year",
+    yaxis_title="Home Ownership Rate",
+    font=dict(size=14, family="Consolas"),
+)
+
+# Add footer annotation
+fig.add_annotation(
+    text="Source: Statistics NZ",
+    xref="paper",
+    yref="paper",
+    x=1.2,
+    y=-0.25,
+    showarrow=False,
+    font=dict(size=12, color="white", family="Consolas"),
+)
+
+fig.update_yaxes(title_text="", range=[40, 90])
+fig.update_xaxes(title_text="", range=[1985, 2020])
+
+fig.show()
 
 ############## ############## ############## ##############
 # Rent inflation plot - monthly index - all locations
@@ -537,8 +675,7 @@ years = [1996, 2006, 2023]
 
 # Create a subplot figure with 3 rows and 1 column
 fig = make_subplots(
-    rows=3, cols=1, shared_yaxes=True,
-    subplot_titles=[f"{year}" for year in years]
+    rows=3, cols=1, shared_yaxes=True, subplot_titles=[f"{year}" for year in years]
 )
 
 row_col_pairs = [(1, 1), (2, 1), (3, 1)]
@@ -548,32 +685,43 @@ for (row, col), year in zip(row_col_pairs, years):
     year_data = df[df["Year"] == year]
 
     # Determine bar colors based on 'Generation'
-    colors = ["orange" if gen == "Baby Boomer" else "skyblue" for gen in year_data["Generation"]]
+    colors = [
+        "orange" if gen == "Baby Boomer" else "skyblue"
+        for gen in year_data["Generation"]
+    ]
 
     # Create bar traces for each age group
     fig.add_trace(
         go.Bar(
-            x=year_data["Age"], y=year_data["Population"], marker_color=colors, showlegend=False
+            x=year_data["Age"],
+            y=year_data["Population"],
+            marker_color=colors,
+            showlegend=False,
         ),
-        row=row, col=col
+        row=row,
+        col=col,
     )
 
 
 # Add annotation pointing to the 'Baby Boomer' bar
 fig.add_annotation(
-    x='60-64 Years', y=250000,  # Adjust the y-coordinate to move the annotation down
-    xref="x1", yref="y1",
-    text="Baby Boomers", showarrow=False,
-    font=dict(color="orange", size=16)  # Increase the font size
+    x="60-64 Years",
+    y=250000,  # Adjust the y-coordinate to move the annotation down
+    xref="x1",
+    yref="y1",
+    text="Baby Boomers",
+    showarrow=False,
+    font=dict(color="orange", size=16),  # Increase the font size
 )
 
 # Update layout for dark mode
 fig.update_layout(
-    template='plotly_dark',
-    width=700, height=1200,
+    template="plotly_dark",
+    width=700,
+    height=1200,
     title_text="Population by Age over the Years",
-    plot_bgcolor='#282a36',
-    paper_bgcolor='#282a36'
+    plot_bgcolor="#282a36",
+    paper_bgcolor="#282a36",
 )
 
 # Update axis labels
