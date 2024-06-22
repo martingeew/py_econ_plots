@@ -2,12 +2,16 @@ import pandas as pd
 
 df = pd.read_csv("../../data/interim/pop_estimate_interim.csv", sep=",")
 
+###### Tidy up column names #######
+
 df = df[df["Age"] != "Total people, age"]
 
 # Replace the specific string in the 'region' column
 df["Region"] = df["Region"].replace(
     "Total, New Zealand by territorial authority/SA2", "Total, New Zealand"
 )
+
+###### Add generation column to pop estimate #######
 
 
 def determine_generation(census_year, age_description):
@@ -103,6 +107,7 @@ df['Region'] = df['Region'].apply(capitalize_region_name)
 
 
 ###### Data by selected populatino share #######
+
 # Filter the DataFrame for Boomers and Millennials
 filtered_df = df[df["Generation"].isin(["Baby Boomer", "Millennial", "Gen Z", "Gen X"])]
 
