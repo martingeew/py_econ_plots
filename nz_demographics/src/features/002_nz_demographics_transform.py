@@ -2,6 +2,9 @@ import pandas as pd
 
 df = pd.read_csv("../../data/interim/pop_estimate_interim.csv", sep=",")
 
+df_proj_2030=pd.read_csv("../../data/raw/pop_projection_2030.csv", sep=",")
+
+
 ###### Tidy up column names #######
 
 df = df[df["Age"] != "Total people, age"]
@@ -12,7 +15,6 @@ df["Region"] = df["Region"].replace(
 )
 
 ###### Add generation column to pop estimate #######
-
 
 def determine_generation(census_year, age_description):
     """
@@ -54,24 +56,6 @@ def determine_generation(census_year, age_description):
         return "Other"  # Return an empty string for ages outside these ranges
 
 
-# Apply the function to each row to categorize generations
-df["Generation"] = df.apply(
-    lambda row: determine_generation(row["Year"], row["Age"]), axis=1
-)
-
-
-# Add a column that marks if the Age group is 65 years and over
-old_age_groups = [
-    "65-69 Years",
-    "70-74 Years",
-    "75-79 Years",
-    "80-84 Years",
-    "85-89 Years",
-    "90 Years and over",
-]
-df["65 and over"] = df["Age"].isin(old_age_groups)
-
-
 def age_to_numeric(age):
     """
     Converts age range strings to a numeric value by extracting the first age in the range.
@@ -91,10 +75,6 @@ def age_to_numeric(age):
     return int(age.split("-")[0])
 
 
-# Use the function as a key for sorting
-df["Age"] = df["Age"].astype(str)  # Ensure the Age column is of type string
-df = df.sort_values("Age", key=lambda x: x.map(age_to_numeric))
-
 def capitalize_region_name(name):
     def capitalize_word(word):
         # Capitalize hyphenated words properly
@@ -102,8 +82,46 @@ def capitalize_region_name(name):
     
     return ' '.join([capitalize_word(word) if word.lower() != "of" and word.lower() != "the" else word for word in name.split()])
 
+
+# Add a column that marks if the Age group is 65 years and over
+old_age_groups = [
+    "65-69 Years",
+    "70-74 Years",
+    "75-79 Years",
+    "80-84 Years",
+    "85-89 Years",
+    "90 Years and over",
+]
+
+############ Pop Estimates
+df["65 and over"] = df["Age"].isin(old_age_groups)
+
+# Apply the function to each row to categorize generations
+df["Generation"] = df.apply(
+    lambda row: determine_generation(row["Year"], row["Age"]), axis=1
+)
+
+# Use the function as a key for sorting
+df["Age"] = df["Age"].astype(str)  # Ensure the Age column is of type string
+df = df.sort_values("Age", key=lambda x: x.map(age_to_numeric))
+
 # Transform the 'region' column
 df['Region'] = df['Region'].apply(capitalize_region_name)
+
+############# Pop Projections
+df_proj_2030["65 and over"] = df_proj_2030["Age"].isin(old_age_groups)
+
+# Apply the function to each row to categorize generations
+df_proj_2030["Generation"] = df_proj_2030.apply(
+    lambda row: determine_generation(row["Year"], row["Age"]), axis=1
+)
+
+# Use the function as a key for sorting
+df_proj_2030["Age"] = df_proj_2030["Age"].astype(str)  # Ensure the Age column is of type string
+df_proj_2030 = df_proj_2030.sort_values("Age", key=lambda x: x.map(age_to_numeric))
+
+# Transform the 'region' column
+df_proj_2030['Region'] = df_proj_2030['Region'].apply(capitalize_region_name)
 
 
 ###### Data by selected populatino share #######
@@ -181,3 +199,6 @@ df_2023.to_csv("../../data/processed/pop_estimate_processed_2023.csv", index=Fal
 
 # save complete data
 df.to_csv("../../data/processed/pop_estimate_processed.csv", index=False)
+
+# save 2030 projection data 
+df_proj_2030.to_csv("../../data/processed/pop_estimate_processed_2030.csv", index=False)
