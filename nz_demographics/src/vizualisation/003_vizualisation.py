@@ -669,33 +669,30 @@ fig.show()
 
 # Load the dataset
 df = pd.read_csv("../../data/processed/pop_estimate_processed_nz.csv", sep=",")
+df_2030 = pd.read_csv("../../data/processed/pop_estimate_processed_2030.csv", sep=",")
 
 
-# Define a function to relabel the age values
-def relabel_age(age):
-    if age == "90 Years and over":
-        return "90+"
-    else:
-        return age.replace(" Years", "")
+# Concatenate df_2030 to df
+df_combined = pd.concat([df, df_2030], ignore_index=True)
 
-
-# Apply the function to the 'Age' column
-df["Age"] = df["Age"].apply(relabel_age)
-
-
-# Define the years of interest for plotting (excluding 2018)
-years = [1996, 2006, 2023]
-
-# Create a subplot figure with 3 rows and 1 column
-fig = make_subplots(
-    rows=3, cols=1, shared_yaxes=True, subplot_titles=[f"{year}" for year in years]
+# Apply the relabeling function to the 'Age' column
+df_combined["Age"] = df_combined["Age"].apply(
+    lambda age: "90+" if age == "90 Years and over" else age
 )
 
-row_col_pairs = [(1, 1), (2, 1), (3, 1)]
+# Define the years of interest for plotting (excluding 2018)
+years = [1996, 2006, 2023, 2030]
+
+# Create a subplot figure with 2 rows and 2 columns
+fig = make_subplots(
+    rows=2, cols=2, shared_yaxes=True, subplot_titles=[f"{year}" for year in years]
+)
+
+row_col_pairs = [(1, 1), (1, 2), (2, 1), (2, 2)]
 
 for (row, col), year in zip(row_col_pairs, years):
     # Filter data for the specific year
-    year_data = df[df["Year"] == year]
+    year_data = df_combined[df_combined["Year"] == year]
 
     # Determine bar colors based on 'Generation'
     colors = [
@@ -715,10 +712,10 @@ for (row, col), year in zip(row_col_pairs, years):
         col=col,
     )
 
-# Add annotation pointing to the 'Baby Boomer' bar
+# Add annotation pointing to the 'Baby Boomer' bar for 1996
 fig.add_annotation(
-    x="60-64 Years",
-    y=315000,  # Adjust the y-coordinate to move the annotation down
+    x="65-69 Years",
+    y=250000,  # Adjust the y-coordinate to move the annotation down
     xref="x1",
     yref="y1",
     text="Baby Boomers",
@@ -731,16 +728,16 @@ fig.add_annotation(
 # Update layout for dark mode
 fig.update_layout(
     template="plotly_dark",
-    width=700,
-    height=1200,
+    width=1000,
+    height=1000,
     title_text="Population Distribution by Age Group",
     plot_bgcolor="#282a36",
     paper_bgcolor="#282a36",
     font=dict(size=14, family="Consolas"),  # Set the font family for the entire plot
 )
 
-# Update axis labels
-fig.update_xaxes(title_text="", tickfont=dict(family="Consolas"))
+# Update axis labels and rotate x-axis tick labels
+fig.update_xaxes(title_text="", tickangle=45, tickfont=dict(family="Consolas"))
 fig.update_yaxes(title_text="", showticklabels=True, tickfont=dict(family="Consolas"))
 fig.update_yaxes(title_text="", range=[0, 400000])
 
@@ -749,8 +746,8 @@ fig.add_annotation(
     text="Source: Statistics NZ",
     xref="paper",
     yref="paper",
-    x=1.1,
-    y=-0.075,
+    x=1.05,
+    y=-0.14,
     showarrow=False,
     font=dict(size=12, color="white", family="Consolas"),
 )
