@@ -52,10 +52,6 @@ df_long=df_long.rename(columns={'Age Year at 30 June':'Region'})
 
 df_long.to_csv('../../data/interim/pop_projection_interim.csv', index=False) 
 
-############### Population projections by age for 2030 #####################
-
-df_proj_2030=pd.read_csv("../../data/raw/pop_projection_age_2030.csv", sep=",")
-# Pivot to match format above
 
 ############### Population projections national #####################
 
